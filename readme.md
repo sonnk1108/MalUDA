@@ -21,7 +21,7 @@ pip install -r requirements.txt
 ---
 
 ## Usage
-
+MalUDA included a preprocessing function, so you can just simply put the raw tabular data.
 Run the main training script:
 
 python main.py --source A_Source --target E_Source
