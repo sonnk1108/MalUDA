@@ -136,7 +136,7 @@ def main():
     for param_group in optimizer.param_groups:
         param_lr.append(param_group["lr"])
     schedule_param = {"gamma": 0.0003, "power": 0.75}
-    lr_scheduler = lr_schedule.schedule_dict["inv_mmd"]
+    lr_scheduler = lr_schedule.schedule_dict["inv_swd"]
 
     cls_loss_fn = nn.CrossEntropyLoss(label_smoothing=0.1)
 
@@ -163,7 +163,7 @@ def main():
 
         else:
             lambda_global = get_lambda(epoch, num_epochs)
-            lambda_local  = get_lambda(epoch, num_epochs)
+            lambda_local  =  0.1 # get_lambda(epoch, num_epochs)
             enp = 0.05
             if epoch < 15:
                 confidence_threshold = 0.99  # easier early on
@@ -172,7 +172,7 @@ def main():
         tgt_iter = itertools.cycle(target_train_loader)
         source_extractor.train()
         classifier.train()
-        epoch_cls, epoch_mmd_g, epoch_mmd_l, epoch_ent = 0., 0., 0., 0.
+        epoch_cls, epoch_swd_g, epoch_swd_l, epoch_ent = 0., 0., 0., 0.
         batches = 0
     
         for src_x, src_y in source_loader:
@@ -196,9 +196,9 @@ def main():
                 # ---- losses ----
                 cls_loss = cls_loss_fn(src_pred, src_y)
                 if lambda_global > 0:
-                    mmd_global = swd_loss(src_feat, tgt_feat,device=device)
+                    swd_global = swd_loss(src_feat, tgt_feat,device=device)
                 else:
-                    mmd_global = torch.tensor(0.0, device=device)
+                    swd_global = torch.tensor(0.0, device=device)
     
                 # entropy (target)
                 if enp > 0:
@@ -207,8 +207,8 @@ def main():
                 else:
                     entropy_loss = torch.tensor(0.0, device=device)
             
-                # ---- local MMD (safe) ----
-                mmd_local = torch.tensor(0.0, device=device)
+                # ---- local swd (safe) ----
+                swd_local = torch.tensor(0.0, device=device)
     
                 if lambda_local > 0:
                     mask_s0 = (src_y == 0)
@@ -220,13 +220,13 @@ def main():
                     tgt_feat_n = tgt_feat[mask_t0]
     
                     if src_feat_n.size(0) > 5 and tgt_feat_n.size(0) > 5:
-                        mmd_local = swd_loss(src_feat_n, tgt_feat_n,device=device)
+                        swd_local = swd_loss(src_feat_n, tgt_feat_n,device=device)
     
                 # ---- total loss ----
                 total_loss = (
                     cls_loss
-                    + lambda_global * mmd_global
-                    + lambda_local  * mmd_local
+                    + lambda_global * swd_global
+                    + lambda_local  * swd_local
                     + enp * entropy_loss #entropy loss included to make the training more stable
                 )
     
@@ -237,8 +237,8 @@ def main():
     
             # ---- logging ----
             epoch_cls   += cls_loss.item()
-            epoch_mmd_g += mmd_global.item()
-            epoch_mmd_l += mmd_local.item()
+            epoch_swd_g += swd_global.item()
+            epoch_swd_l += swd_local.item()
             epoch_ent   += entropy_loss.item()
     
             batches += 1
@@ -248,8 +248,8 @@ def main():
         print(
             f"Epoch [{epoch+1}/{num_epochs}] | "
             f"Cls: {epoch_cls/batches:.4f} | "
-            f"SWD_g: {epoch_mmd_g/batches:.4f} | "
-            f"SWD_l: {epoch_mmd_l/batches:.4f} | "
+            f"SWD_g: {epoch_swd_g/batches:.4f} | "
+            f"SWD_l: {epoch_swd_l/batches:.4f} | "
             f"Ent: {epoch_ent/batches:.4f} | "
             f"λg: {lambda_global:.3f}, λl: {lambda_local:.3f}"
         )
