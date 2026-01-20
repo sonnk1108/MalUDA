@@ -10,8 +10,11 @@ Official implementation of **MalUDA: Unsupervised Domain Adaptation for Robust M
 - Recommended to use a virtual environment:
 
 python -m venv venv
+
 source venv/bin/activate # Linux / macOS
+
 venv\Scripts\activate # Windows
+
 pip install -r requirements.txt
 
 
