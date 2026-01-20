@@ -34,8 +34,7 @@ python main.py --source A_Source --target E_Source
 
 Optional arguments (examples):
 
-- `--epochs` : Number of training epochs (default: 10)  
-- `--lr` : Learning rate (default: 0.001)  
+- `--epochs` : Number of training epochs (default: 50)  
 
 ---
 
