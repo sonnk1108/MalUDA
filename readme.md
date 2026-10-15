@@ -1,6 +1,8 @@
-# MalUDA
+# NetUDA
 
-Official implementation of **MalUDA: Unsupervised Domain Adaptation for Robust Malware Detection under Unseen Attacks in IoT Environment**.
+Official implementation of **NetUDA: A Novel Intrusion Detection Framework via
+Unsupervised Domain Adaptation in IoT Network
+Environments**.
 
 ---
 
